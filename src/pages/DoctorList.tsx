@@ -71,7 +71,7 @@ export default function DoctorList() {
                     <h3 className="font-heading font-semibold truncate">{doc.name}</h3>
                     <p className="text-sm text-muted-foreground">{doc.specialty}</p>
                     <div className="flex items-center gap-1 mt-1">
-                      <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+                      <Star className="h-3.5 w-3.5 fill-current text-amber-500" />
                       <span className="text-sm font-medium">{doc.rating}</span>
                       <span className="text-xs text-muted-foreground">({doc.reviews})</span>
                     </div>
