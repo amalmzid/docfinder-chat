@@ -10,6 +10,7 @@ const navLinks = [
   { label: "Medicines", path: "/medicines" },
   { label: "Appointments", path: "/appointments" },
   { label: "Consultation", path: "/consultation" },
+  { label: "Pharmacy", path: "/pharmacy" },
 ];
 
 export default function Layout({ children }: { children: React.ReactNode }) {
