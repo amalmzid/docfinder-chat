@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { pharmacyService, Pharmacy } from "../services/pharmacyService";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,14 +28,6 @@ interface Medicine {
   description: string;
 }
 
-interface Pharmacy {
-  id: number;
-  name: string;
-  address: string;
-  phone: string;
-  hours: string;
-  isActive: boolean;
-}
 
 const initialMedicines: Medicine[] = [
   { id: 1, name: "Amoxicillin 500mg", category: "Antibiotics", price: 12.99, stock: 150, inStock: true, description: "Broad-spectrum antibiotic for bacterial infections." },
@@ -48,21 +41,39 @@ const initialMedicines: Medicine[] = [
 const categories = ["Antibiotics", "Pain Relief", "Diabetes", "Cardiovascular", "Gastrointestinal", "Allergy", "Vitamins", "Dermatology"];
 
 const emptyMedicine: Omit<Medicine, "id"> = { name: "", category: "Antibiotics", price: 0, stock: 0, inStock: true, description: "" };
-const emptyPharmacy: Omit<Pharmacy, "id"> = { name: "", address: "", phone: "", hours: "08:00 - 22:00", isActive: true };
+const emptyPharmacy: Omit<Pharmacy, 'id_pharmacie'> = { nom: "", adresse: "", horaireOuverture: "08:00 - 22:00" };
 
 export default function PharmacyAdmin() {
   const [medicines, setMedicines] = useState<Medicine[]>(initialMedicines);
-  const [pharmacies, setPharmacies] = useState<Pharmacy[]>([
-    { id: 1, name: "E-MedCare Central Pharmacy", address: "123 Health St, Medical District", phone: "+1 555-0100", hours: "08:00 - 22:00", isActive: true },
-    { id: 2, name: "E-MedCare North Branch", address: "456 Wellness Ave, Northside", phone: "+1 555-0200", hours: "09:00 - 21:00", isActive: true },
-  ]);
+  const [pharmacies, setPharmacies] = useState<Pharmacy[]>([]);
+  const [pharmacyLoading, setPharmacyLoading] = useState(true);
+  const [pharmacyError, setPharmacyError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [medForm, setMedForm] = useState(emptyMedicine);
   const [editingMedId, setEditingMedId] = useState<number | null>(null);
   const [medDialogOpen, setMedDialogOpen] = useState(false);
-  const [pharmForm, setPharmForm] = useState(emptyPharmacy);
+  const [pharmForm, setPharmForm] = useState<Omit<Pharmacy, 'id_pharmacie'>>(emptyPharmacy);
   const [editingPharmId, setEditingPharmId] = useState<number | null>(null);
   const [pharmDialogOpen, setPharmDialogOpen] = useState(false);
+
+  // Fetch pharmacies from backend
+  useEffect(() => {
+    fetchPharmacies();
+  }, []);
+
+  const fetchPharmacies = async () => {
+    try {
+      setPharmacyLoading(true);
+      const data = await pharmacyService.getAllPharmacies();
+      setPharmacies(data);
+      setPharmacyError(null);
+    } catch (err) {
+      setPharmacyError('Failed to fetch pharmacies');
+      console.error('Error:', err);
+    } finally {
+      setPharmacyLoading(false);
+    }
+  };
 
   // Medicine CRUD
   const saveMedicine = () => {
@@ -95,33 +106,51 @@ export default function PharmacyAdmin() {
   };
 
   // Pharmacy CRUD
-  const savePharmacy = () => {
-    if (!pharmForm.name || !pharmForm.address || !pharmForm.phone) {
+  const savePharmacy = async () => {
+    if (!pharmForm.nom || !pharmForm.adresse || !pharmForm.horaireOuverture) {
       toast.error("Please fill all required fields.");
       return;
     }
-    if (editingPharmId !== null) {
-      setPharmacies((prev) => prev.map((p) => (p.id === editingPharmId ? { ...pharmForm, id: editingPharmId } : p)));
-      toast.success("Pharmacy updated!");
-    } else {
-      const newId = Math.max(0, ...pharmacies.map((p) => p.id)) + 1;
-      setPharmacies((prev) => [...prev, { ...pharmForm, id: newId }]);
-      toast.success("Pharmacy added!");
+    
+    try {
+      if (editingPharmId !== null) {
+        await pharmacyService.updatePharmacy(editingPharmId, pharmForm);
+        toast.success("Pharmacy updated!");
+      } else {
+        await pharmacyService.createPharmacy(pharmForm);
+        toast.success("Pharmacy added!");
+      }
+      setPharmForm(emptyPharmacy);
+      setEditingPharmId(null);
+      setPharmDialogOpen(false);
+      fetchPharmacies(); // Refresh the list
+    } catch (err) {
+      toast.error("Failed to save pharmacy");
+      console.error('Error:', err);
     }
-    setPharmForm(emptyPharmacy);
-    setEditingPharmId(null);
-    setPharmDialogOpen(false);
   };
 
   const editPharmacy = (ph: Pharmacy) => {
-    setPharmForm(ph);
-    setEditingPharmId(ph.id);
+    setPharmForm({
+      nom: ph.nom,
+      adresse: ph.adresse,
+      horaireOuverture: ph.horaireOuverture
+    });
+    setEditingPharmId(ph.id_pharmacie!);
     setPharmDialogOpen(true);
   };
 
-  const deletePharmacy = (id: number) => {
-    setPharmacies((prev) => prev.filter((p) => p.id !== id));
-    toast.success("Pharmacy removed.");
+  const deletePharmacy = async (id: number) => {
+    if (window.confirm('Are you sure you want to delete this pharmacy?')) {
+      try {
+        await pharmacyService.deletePharmacy(id);
+        toast.success("Pharmacy removed.");
+        fetchPharmacies(); // Refresh the list
+      } catch (err) {
+        toast.error("Failed to delete pharmacy");
+        console.error('Error:', err);
+      }
+    }
   };
 
   const filteredMedicines = medicines.filter((m) => m.name.toLowerCase().includes(search.toLowerCase()));
@@ -291,25 +320,15 @@ export default function PharmacyAdmin() {
                 <div className="grid gap-4 py-2">
                   <div className="grid gap-2">
                     <Label>Pharmacy Name *</Label>
-                    <Input value={pharmForm.name} onChange={(e) => setPharmForm({ ...pharmForm, name: e.target.value })} placeholder="e.g. MedCare Pharmacy" />
+                    <Input value={pharmForm.nom} onChange={(e) => setPharmForm({ ...pharmForm, nom: e.target.value })} placeholder="e.g. MedCare Pharmacy" />
                   </div>
                   <div className="grid gap-2">
                     <Label>Address *</Label>
-                    <Input value={pharmForm.address} onChange={(e) => setPharmForm({ ...pharmForm, address: e.target.value })} placeholder="123 Main St, City" />
+                    <Input value={pharmForm.adresse} onChange={(e) => setPharmForm({ ...pharmForm, adresse: e.target.value })} placeholder="123 Main St, City" />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="grid gap-2">
-                      <Label>Phone *</Label>
-                      <Input value={pharmForm.phone} onChange={(e) => setPharmForm({ ...pharmForm, phone: e.target.value })} placeholder="+1 555-0100" />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label>Operating Hours</Label>
-                      <Input value={pharmForm.hours} onChange={(e) => setPharmForm({ ...pharmForm, hours: e.target.value })} placeholder="08:00 - 22:00" />
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Switch checked={pharmForm.isActive} onCheckedChange={(v) => setPharmForm({ ...pharmForm, isActive: v })} />
-                    <Label>Active</Label>
+                  <div className="grid gap-2">
+                    <Label>Operating Hours</Label>
+                    <Input value={pharmForm.horaireOuverture} onChange={(e) => setPharmForm({ ...pharmForm, horaireOuverture: e.target.value })} placeholder="08:00 - 22:00" />
                   </div>
                   <div className="flex justify-end gap-2 pt-2">
                     <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
@@ -320,38 +339,40 @@ export default function PharmacyAdmin() {
             </Dialog>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4">
-            {pharmacies.map((ph, i) => (
-              <motion.div key={ph.id} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}>
-                <Card className="shadow-card hover:shadow-elevated transition-shadow">
-                  <CardContent className="p-5">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className="h-11 w-11 rounded-lg bg-accent flex items-center justify-center">
-                          <Store className="h-5 w-5 text-primary" />
+            {pharmacyLoading ? (
+              <div className="flex justify-center p-8">Loading pharmacies...</div>
+            ) : pharmacyError ? (
+              <div className="text-red-500 p-8">Error: {pharmacyError}</div>
+            ) : (
+              <div className="grid md:grid-cols-2 gap-4">
+                {pharmacies.map((ph, i) => (
+                  <motion.div key={ph.id_pharmacie} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}>
+                    <Card className="shadow-card hover:shadow-elevated transition-shadow">
+                      <CardContent className="p-5">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <div className="h-11 w-11 rounded-lg bg-accent flex items-center justify-center">
+                              <Store className="h-5 w-5 text-primary" />
+                            </div>
+                            <div>
+                              <h3 className="font-heading font-semibold">{ph.nom}</h3>
+                            </div>
+                          </div>
+                          <div className="flex gap-1">
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => editPharmacy(ph)}><Pencil className="h-4 w-4" /></Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => deletePharmacy(ph.id_pharmacie!)}><Trash2 className="h-4 w-4" /></Button>
+                          </div>
                         </div>
-                        <div>
-                          <h3 className="font-heading font-semibold">{ph.name}</h3>
-                          <Badge variant={ph.isActive ? "default" : "secondary"} className={`text-xs mt-1 ${ph.isActive ? "bg-secondary" : ""}`}>
-                            {ph.isActive ? "Active" : "Inactive"}
-                          </Badge>
+                        <div className="space-y-2 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-2"><MapPin className="h-4 w-4" />{ph.adresse}</div>
+                          <div className="flex items-center gap-2"><Clock className="h-4 w-4" />{ph.horaireOuverture}</div>
                         </div>
-                      </div>
-                      <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => editPharmacy(ph)}><Pencil className="h-4 w-4" /></Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => deletePharmacy(ph.id)}><Trash2 className="h-4 w-4" /></Button>
-                      </div>
-                    </div>
-                    <div className="space-y-2 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-2"><MapPin className="h-4 w-4" />{ph.address}</div>
-                      <div className="flex items-center gap-2"><Phone className="h-4 w-4" />{ph.phone}</div>
-                      <div className="flex items-center gap-2"><Clock className="h-4 w-4" />{ph.hours}</div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            )}
         </TabsContent>
       </Tabs>
     </div>
