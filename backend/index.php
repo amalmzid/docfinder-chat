@@ -38,7 +38,7 @@ if (strpos($path, '/heal-u/backend') === 0) {
 switch ($path) {
     case '/':
     case '/health':
-        send_response(['status' => 'ok', 'message' => 'Heal-U API is running']);
+        echo json_encode(['status' => 'ok', 'message' => 'Heal-U API is running']);
         break;
 /*        
     case '/api/auth/login':
@@ -86,11 +86,16 @@ switch ($path) {
     case '/api/pharmacies':
         require_once __DIR__ . '/api/pharmacies.php';
         break;
+    case '/api/doctors':
+        require_once __DIR__ . '/api/doctors.php';
+        break;
         
     default:
         // Check if it's a pharmacy endpoint with ID (for GET, PUT, DELETE with ?id=)
         if (strpos($path, '/api/pharmacies') === 0) {
             require_once __DIR__ . '/api/pharmacies.php';
+        } else if (strpos($path, '/api/doctors') === 0) {
+            require_once __DIR__ . '/api/doctors.php';
         } else {
             echo json_encode(['error' => 'Endpoint not found', 'request_uri' => $path]);
         }
