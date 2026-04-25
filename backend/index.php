@@ -40,10 +40,10 @@ switch ($path) {
     case '/health':
         echo json_encode(['status' => 'ok', 'message' => 'Heal-U API is running']);
         break;
-/*        
+/*
     case '/api/auth/login':
         if ($method === 'POST') {
-            require_once __DIR__ . '/api/auth.php';
+            require_once __DIR__ . '/api/users.php';
             handleLogin();
         } else {
             send_error('Method not allowed', 405);
@@ -52,7 +52,7 @@ switch ($path) {
         
     case '/api/auth/register':
         if ($method === 'POST') {
-            require_once __DIR__ . '/api/auth.php';
+            require_once __DIR__ . '/api/users.php';
             handleRegister();
         } else {
             send_error('Method not allowed', 405);
@@ -60,15 +60,7 @@ switch ($path) {
         break;
         
     case '/api/appointments':
-        if ($method === 'GET') {
-            require_once __DIR__ . '/api/appointments.php';
-            getAppointments();
-        } elseif ($method === 'POST') {
-            require_once __DIR__ . '/api/appointments.php';
-            createAppointment();
-        } else {
-            send_error('Method not allowed', 405);
-        }
+        require_once __DIR__ . '/api/appointments_existing.php';
         break;
         
     case '/api/consultations':
@@ -88,6 +80,18 @@ switch ($path) {
         break;
     case '/api/doctors':
         require_once __DIR__ . '/api/doctors.php';
+        break;
+    case '/api/users':
+        require_once __DIR__ . '/api/users.php';
+        break;
+    case '/api/medicines':
+        require_once __DIR__ . '/api/medicines_existing.php';
+        break;
+    case '/api/rendezvous':
+        require_once __DIR__ . '/api/rendezvous.php';
+        break;
+    case '/api/historique':
+        require_once __DIR__ . '/api/historique.php';
         break;
         
     default:

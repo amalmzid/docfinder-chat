@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Medicines Page</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+    </style>
+</head>
+<body>
+    <h1>Medicines Page Debug</h1>
+    
+    <div class="test-section">
+        <h2>1. Check Vite Dev Server</h2>
+        <p>If you're seeing this page, the web server is working.</p>
+        <p>The React app should be running on a different port (usually 5173).</p>
+        <p>Try accessing: <a href="http://localhost:5173/medicines" target="_blank">http://localhost:5173/medicines</a></p>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. Test API Directly</h2>
+        <button onclick="testAPI()">Test Medicines API</button>
+        <div id="apiResult"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. Check React App Status</h2>
+        <button onclick="checkReactApp()">Check React App</button>
+        <div id="reactResult"></div>
+    </div>
+    
+    <script>
+        async function testAPI() {
+            const resultDiv = document.getElementById('apiResult');
+            resultDiv.innerHTML = 'Testing...';
+            
+            try {
+                const response = await fetch('http://localhost/heal-u/backend/api/medicines.php');
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h3>✅ API Working</h3>
+                        <p>Status: ${response.status}</p>
+                        <p>Medicines found: ${Array.isArray(data) ? data.length : 'Not an array'}</p>
+                        <pre>${JSON.stringify(data.slice(0, 2), null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h3>❌ API Error</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        async function checkReactApp() {
+            const resultDiv = document.getElementById('reactResult');
+            
+            try {
+                // Try to access the React app
+                const response = await fetch('http://localhost:5173/');
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h3>✅ React App Running</h3>
+                            <p>React app is accessible at: <a href="http://localhost:5173" target="_blank">http://localhost:5173</a></p>
+                            <p>Try accessing medicines at: <a href="http://localhost:5173/medicines" target="_blank">http://localhost:5173/medicines</a></p>
+                        </div>
+                    `;
+                } else {
+                    throw new Error('React app not responding');
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h3>❌ React App Not Running</h3>
+                        <p>Start the Vite dev server with: <code>npm run dev</code></p>
+                        <p>Then access: <a href="http://localhost:5173/medicines" target="_blank">http://localhost:5173/medicines</a></p>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

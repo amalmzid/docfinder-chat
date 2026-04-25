@@ -1,23 +1,69 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Heart, User, Mail, Lock } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Heart, Mail, Lock, User } from "lucide-react";
+import { toast } from "sonner";
 
 export default function Register() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [role, setRole] = useState("");
-  const { toast } = useToast();
+  const [formData, setFormData] = useState({
+    nom: "",
+    email: "",
+    mot_de_passe: "",
+    role: "patient"
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({ title: "Account Created", description: "Backend integration required for real registration." });
+    setIsLoading(true);
+
+    try {
+      console.log('Attempting registration with:', { ...formData, mot_de_passe: '***' });
+      
+      // Call registration API
+      const response = await fetch('http://localhost/heal-u/backend/api/register.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      console.log('Registration response status:', response.status);
+
+      const data = await response.json();
+      console.log('Registration response data:', data);
+
+      if (response.ok && data.success) {
+        // Store authentication data
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('userType', data.user.role);
+        localStorage.setItem('userId', data.user.id);
+        
+        toast.success(`Registration Successful! Welcome to E-MedCare!`);
+        
+        // Redirect based on user type
+        if (data.user.role === 'doctor') {
+          navigate('/doctor-dashboard');
+        } else if (data.user.role === 'patient') {
+          navigate('/patient-portal');
+        } else {
+          navigate('/');
+        }
+      } else {
+        toast.error(data.message || 'Registration failed');
+      }
+    } catch (error) {
+      console.error('Registration error:', error);
+      toast.error('Registration failed. Please check your connection and try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -28,7 +74,7 @@ export default function Register() {
             <Heart className="h-6 w-6 text-primary-foreground" />
           </div>
           <CardTitle className="font-heading text-2xl">Create Account</CardTitle>
-          <CardDescription>Join E-MedCare today</CardDescription>
+          <CardDescription>Join E-MedCare healthcare platform</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -36,36 +82,61 @@ export default function Register() {
               <Label htmlFor="name">Full Name</Label>
               <div className="relative">
                 <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input id="name" placeholder="John Doe" className="pl-10" value={name} onChange={(e) => setName(e.target.value)} required />
+                <Input 
+                  id="name" 
+                  placeholder="John Doe" 
+                  className="pl-10" 
+                  value={formData.nom} 
+                  onChange={(e) => setFormData({ ...formData, nom: e.target.value })} 
+                  required 
+                />
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="reg-email">Email</Label>
+              <Label htmlFor="email">Email</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input id="reg-email" type="email" placeholder="you@example.com" className="pl-10" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                <Input 
+                  id="email" 
+                  type="email" 
+                  placeholder="you@example.com" 
+                  className="pl-10" 
+                  value={formData.email} 
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })} 
+                  required 
+                />
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="reg-password">Password</Label>
+              <Label htmlFor="password">Password</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input id="reg-password" type="password" placeholder="••••••••" className="pl-10" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                <Input 
+                  id="password" 
+                  type="password" 
+                  placeholder="••••••••" 
+                  className="pl-10" 
+                  value={formData.mot_de_passe} 
+                  onChange={(e) => setFormData({ ...formData, mot_de_passe: e.target.value })} 
+                  required 
+                />
               </div>
             </div>
             <div className="space-y-2">
-              <Label>I am a</Label>
-              <Select value={role} onValueChange={setRole}>
-                <SelectTrigger><SelectValue placeholder="Select your role" /></SelectTrigger>
+              <Label htmlFor="role">Account Type</Label>
+              <Select value={formData.role} onValueChange={(value: string) => setFormData({ ...formData, role: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select account type" />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="patient">Patient</SelectItem>
-                  <SelectItem value="doctor">Doctor</SelectItem>
-                  <SelectItem value="pharmacist">Pharmacist</SelectItem>
+                  <SelectItem value="medecin">Doctor</SelectItem>
+                  <SelectItem value="adminstrateur">Administrator</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <Button type="submit" className="w-full bg-gradient-medical hover:opacity-90">
-              Create Account
+            <Button type="submit" className="w-full bg-gradient-medical hover:opacity-90" disabled={isLoading}>
+              {isLoading ? "Creating account..." : "Create Account"}
             </Button>
           </form>
           <p className="mt-4 text-center text-sm text-muted-foreground">
