@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Patient Portal Debug</title>
+</head>
+<body>
+    <h1>Patient Portal Debug</h1>
+    <div id="output"></div>
+    
+    <script>
+        async function testAPI() {
+            const output = document.getElementById('output');
+            output.innerHTML = '<p>Testing API...</p>';
+            
+            try {
+                // Test doctors API
+                const response = await fetch('http://localhost/heal-u/backend/api/doctors.php');
+                const data = await response.json();
+                
+                output.innerHTML += '<h3>Doctors API Response:</h3>';
+                output.innerHTML += '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                
+                // Test appointments API
+                const token = localStorage.getItem('token');
+                const userId = localStorage.getItem('userId');
+                
+                if (token && userId) {
+                    const apptResponse = await fetch(`http://localhost/heal-u/backend/api/appointments.php?patient_id=${userId}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const apptData = await apptResponse.json();
+                    
+                    output.innerHTML += '<h3>Appointments API Response:</h3>';
+                    output.innerHTML += '<pre>' + JSON.stringify(apptData, null, 2) + '</pre>';
+                } else {
+                    output.innerHTML += '<p>No token or userId found in localStorage</p>';
+                }
+                
+            } catch (error) {
+                output.innerHTML += '<h3>Error:</h3>';
+                output.innerHTML += '<p>' + error.message + '</p>';
+            }
+        }
+        
+        testAPI();
+    </script>
+</body>
+</html>

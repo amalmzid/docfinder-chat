@@ -4,7 +4,7 @@ export interface Doctor {
   id_docteur?: number;
   nom: string;
   email: string;
-  mot_de_passe: string;
+  mot_de_passe?: string;
   role: string;
   specialite: string;
   created_at?: string;
@@ -14,11 +14,43 @@ export interface Doctor {
 export const doctorService = {
   // Get all doctors
   async getAllDoctors(): Promise<Doctor[]> {
-    const response = await fetch(API_BASE_URL);
-    if (!response.ok) {
-      throw new Error('Failed to fetch doctors');
+    try {
+      const response = await fetch(API_BASE_URL);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      console.log('Raw API response:', data);
+      
+      // Handle different response formats
+      if (Array.isArray(data)) {
+        return data.map(item => this.normalizeDoctor(item));
+      } else if (data && Array.isArray(data.data)) {
+        return data.data.map(item => this.normalizeDoctor(item));
+      } else if (data && Array.isArray(data.doctors)) {
+        return data.doctors.map(item => this.normalizeDoctor(item));
+      } else {
+        console.warn('Unexpected API response format:', data);
+        return [];
+      }
+    } catch (error) {
+      console.error('Error fetching doctors:', error);
+      throw error;
     }
-    return response.json();
+  },
+
+  // Normalize doctor data to match interface
+  normalizeDoctor(item: any): Doctor {
+    return {
+      id_docteur: item.id_docteur || item.id,
+      nom: item.nom || '',
+      email: item.email || '',
+      mot_de_passe: item.mot_de_passe || item.password || '',
+      role: item.role || 'doctor',
+      specialite: item.specialite || item.specialty || '',
+      created_at: item.created_at,
+      updated_at: item.updated_at
+    };
   },
 
   // Get doctor by ID
@@ -27,7 +59,8 @@ export const doctorService = {
     if (!response.ok) {
       throw new Error('Failed to fetch doctor');
     }
-    return response.json();
+    const data = await response.json();
+    return this.normalizeDoctor(data);
   },
 
   // Create new doctor

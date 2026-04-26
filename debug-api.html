@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Debug</title>
+</head>
+<body>
+    <h1>API Debug Test</h1>
+    <div id="results"></div>
+    
+    <script>
+        const results = document.getElementById('results');
+        
+        // Test doctors API
+        fetch('http://localhost/heal-u/backend/api/doctors.php')
+            .then(response => {
+                results.innerHTML += `<p>Response status: ${response.status}</p>`;
+                results.innerHTML += `<p>Response headers: ${JSON.stringify([...response.headers.entries()])}</p>`;
+                return response.json();
+            })
+            .then(data => {
+                results.innerHTML += `<h2>Doctors API Response:</h2>`;
+                results.innerHTML += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                results.innerHTML += `<p>Data type: ${typeof data}</p>`;
+                results.innerHTML += `<p>Is array: ${Array.isArray(data)}</p>`;
+                if (Array.isArray(data)) {
+                    results.innerHTML += `<p>Number of doctors: ${data.length}</p>`;
+                }
+            })
+            .catch(error => {
+                results.innerHTML += `<h2>Error:</h2>`;
+                results.innerHTML += `<p>${error.message}</p>`;
+                results.innerHTML += `<pre>${error.stack}</pre>`;
+            });
+    </script>
+</body>
+</html>

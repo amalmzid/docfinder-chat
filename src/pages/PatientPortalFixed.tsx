@@ -27,7 +27,7 @@ interface Appointment {
   specialite: string;
 }
 
-export default function PatientPortal() {
+export default function PatientPortalFixed() {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [myAppointments, setMyAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,9 +60,7 @@ export default function PatientPortal() {
       console.log('Doctors data received:', doctorsData);
       console.log('Doctors count:', doctorsData.length);
       setDoctors(doctorsData);
-      console.log('Loading state before setDoctors:', loading);
 
-      // Fetch patient appointments if logged in
       if (token && userId) {
         try {
           const appointmentsResponse = await fetch(`http://localhost/heal-u/backend/api/appointments.php?patient_id=${userId}`, {
@@ -71,7 +69,6 @@ export default function PatientPortal() {
           const appointmentsData = await appointmentsResponse.json();
           
           if (appointmentsData.success) {
-            // API already provides doctor_name and specialite, no enrichment needed
             setMyAppointments(appointmentsData.appointments);
           }
         } catch (error) {
@@ -141,7 +138,6 @@ export default function PatientPortal() {
         setAppointmentDialogOpen(false);
         setAppointmentForm({ date_rdv: "", motif: "" });
         setSelectedDoctor(null);
-        // Refresh data to show the new appointment
         fetchData();
       } else {
         toast.error(data.message || 'Failed to book appointment');
@@ -155,9 +151,23 @@ export default function PatientPortal() {
   return (
     <div className="container py-8">
       <div className="mb-8">
-        <h1 className="font-heading text-3xl font-bold mb-2">Patient Portal</h1>
+        <h1 className="font-heading text-3xl font-bold mb-2">Patient Portal (Fixed)</h1>
         <p className="text-muted-foreground">Find doctors and manage your healthcare appointments</p>
       </div>
+
+      {/* Debug Info */}
+      <Card className="shadow-card mb-8 bg-yellow-50 border-yellow-200">
+        <CardContent className="p-4">
+          <div className="text-sm space-y-1">
+            <p><strong>Debug Info:</strong></p>
+            <p>Loading: {loading.toString()}</p>
+            <p>Error: {error || 'None'}</p>
+            <p>Doctors Count: {doctors.length}</p>
+            <p>Filtered Doctors: {filteredDoctors.length}</p>
+            <p>Should Show Content: {!loading.toString()}</p>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Loading State */}
       {loading && (
@@ -191,59 +201,58 @@ export default function PatientPortal() {
         </Card>
       )}
 
-      {/* Search Bar */}
+      {/* Content - Only show when not loading */}
       {!loading && (
-        <Card className="shadow-card mb-8">
-          <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search doctors by name or specialty..."
-                  className="pl-10"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
+        <>
+          {/* Search Bar */}
+          <Card className="shadow-card mb-8">
+            <CardContent className="p-6">
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search doctors by name or specialty..."
+                    className="pl-10"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+                <Select value={selectedSpecialty} onValueChange={setSelectedSpecialty}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Filter by specialty" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Specialties</SelectItem>
+                    {specialties.map((specialty) => (
+                      <SelectItem key={specialty} value={specialty}>{specialty}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              <Select value={selectedSpecialty} onValueChange={setSelectedSpecialty}>
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Filter by specialty" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Specialties</SelectItem>
-                  {specialties.map((specialty) => (
-                    <SelectItem key={specialty} value={specialty}>{specialty}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+            </CardContent>
+          </Card>
 
-      {!loading && (
-        <Tabs defaultValue="doctors" className="space-y-6">
-        <TabsList className="grid w-full max-w-md grid-cols-2">
-          <TabsTrigger value="doctors" className="gap-2">
-            <Stethoscope className="h-4 w-4" />Doctors
-          </TabsTrigger>
-          <TabsTrigger value="my-appointments" className="gap-2">
-            <Calendar className="h-4 w-4" />My Appointments
-          </TabsTrigger>
-        </TabsList>
+          <Tabs defaultValue="doctors" className="space-y-6">
+            <TabsList className="grid w-full max-w-md grid-cols-2">
+              <TabsTrigger value="doctors" className="gap-2">
+                <Stethoscope className="h-4 w-4" />Doctors
+              </TabsTrigger>
+              <TabsTrigger value="my-appointments" className="gap-2">
+                <Calendar className="h-4 w-4" />My Appointments
+              </TabsTrigger>
+            </TabsList>
 
-        {/* Doctors Tab */}
-        <TabsContent value="doctors">
-          <Card className="shadow-card">
-            <CardHeader>
-              <CardTitle className="font-heading text-lg">Available Doctors</CardTitle>
-              <CardDescription>Find and book appointments with healthcare professionals</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="flex justify-center p-8">Loading doctors...</div>
-              ) : (
-                <>
+            {/* Doctors Tab */}
+            <TabsContent value="doctors">
+              <Card className="shadow-card">
+                <CardHeader>
+                  <CardTitle className="font-heading text-lg">Available Doctors</CardTitle>
+                  <CardDescription>Find and book appointments with healthcare professionals</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="mb-4 p-2 bg-blue-50 rounded">
+                    <p><strong>Debug:</strong> Found {filteredDoctors.length} filtered doctors</p>
+                  </div>
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {filteredDoctors.map((doctor, i) => (
                       <motion.div key={doctor.id_docteur} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}>
@@ -283,80 +292,75 @@ export default function PatientPortal() {
                     ))}
                   </div>
                   {filteredDoctors.length === 0 && (
-                    <div className="col-span-full text-center py-8 text-muted-foreground">
+                    <div className="text-center py-8 text-muted-foreground">
                       No doctors found matching your criteria.
                     </div>
                   )}
-                </>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-        {/* My Appointments Tab */}
-        <TabsContent value="my-appointments">
-          <Card className="shadow-card">
-            <CardHeader>
-              <CardTitle className="font-heading text-lg">My Appointments</CardTitle>
-              <CardDescription>View and manage your upcoming and past appointments</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="flex justify-center p-8">Loading appointments...</div>
-              ) : (
-                <div className="space-y-4">
-                  {myAppointments.map((appointment) => (
-                    <motion.div key={appointment.id_rdv} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}>
-                      <Card className="shadow-card">
-                        <CardContent className="p-5">
-                          <div className="flex items-start justify-between mb-3">
-                            <div className="flex items-center gap-3">
-                              <div className="h-11 w-11 rounded-lg bg-accent flex items-center justify-center">
-                                <Stethoscope className="h-5 w-5 text-blue-600" />
+            {/* My Appointments Tab */}
+            <TabsContent value="my-appointments">
+              <Card className="shadow-card">
+                <CardHeader>
+                  <CardTitle className="font-heading text-lg">My Appointments</CardTitle>
+                  <CardDescription>View and manage your upcoming and past appointments</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {myAppointments.map((appointment) => (
+                      <motion.div key={appointment.id_rdv} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}>
+                        <Card className="shadow-card">
+                          <CardContent className="p-5">
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="flex items-center gap-3">
+                                <div className="h-11 w-11 rounded-lg bg-accent flex items-center justify-center">
+                                  <Stethoscope className="h-5 w-5 text-blue-600" />
+                                </div>
+                                <div>
+                                  <h3 className="font-heading font-semibold">{appointment.doctor_name}</h3>
+                                  <p className="text-sm text-muted-foreground">{appointment.specialite}</p>
+                                </div>
                               </div>
-                              <div>
-                                <h3 className="font-heading font-semibold">{appointment.doctor_name}</h3>
-                                <p className="text-sm text-muted-foreground">{appointment.specialite}</p>
+                              <Badge 
+                                variant={appointment.statut === 'completed' ? 'default' : 
+                                        appointment.statut === 'cancelled' ? 'destructive' : 
+                                        appointment.statut === 'confirmed' ? 'secondary' : 'outline'}
+                              >
+                                {appointment.statut}
+                              </Badge>
+                            </div>
+                            <div className="space-y-2 text-sm text-muted-foreground mb-4">
+                              <div className="flex items-center gap-2">
+                                <Calendar className="h-4 w-4" />
+                                {new Date(appointment.date_rdv).toLocaleString()}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Clock className="h-4 w-4" />
+                                {appointment.heure}
                               </div>
                             </div>
-                            <Badge 
-                              variant={appointment.statut === 'completed' ? 'default' : 
-                                      appointment.statut === 'cancelled' ? 'destructive' : 
-                                      appointment.statut === 'confirmed' ? 'secondary' : 'outline'}
-                            >
-                              {appointment.statut}
-                            </Badge>
-                          </div>
-                          <div className="space-y-2 text-sm text-muted-foreground mb-4">
-                            <div className="flex items-center gap-2">
-                              <Calendar className="h-4 w-4" />
-                              {new Date(appointment.date_rdv).toLocaleString()}
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Clock className="h-4 w-4" />
-                              {appointment.heure}
-                            </div>
-                          </div>
-                          {appointment.statut === 'pending' && (
-                            <Button size="sm" variant="destructive" className="w-full">
-                              Cancel Appointment
-                            </Button>
-                          )}
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  ))}
-                  {myAppointments.length === 0 && (
-                    <div className="text-center py-8 text-muted-foreground">
-                      You haven't booked any appointments yet.
-                    </div>
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+                            {appointment.statut === 'pending' && (
+                              <Button size="sm" variant="destructive" className="w-full">
+                                Cancel Appointment
+                              </Button>
+                            )}
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    ))}
+                    {myAppointments.length === 0 && (
+                      <div className="text-center py-8 text-muted-foreground">
+                        You haven't booked any appointments yet.
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </>
       )}
 
       {/* Appointment Dialog */}

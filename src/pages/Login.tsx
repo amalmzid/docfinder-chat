@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Heart, Mail, Lock } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -46,7 +46,11 @@ export default function Login() {
           localStorage.setItem('userData', JSON.stringify(data.userData));
         }
         
-        toast.success(`Login Successful! Welcome back to E-MedCare!`);
+        toast({
+          title: "Login Successful!",
+          description: `Welcome back to E-MedCare!`,
+          variant: "default"
+        });
         
         // Redirect based on user type
         if (data.userType === 'doctor') {
@@ -59,11 +63,19 @@ export default function Login() {
           navigate('/');
         }
       } else {
-        toast.error(data.message || 'Login failed');
+        toast({
+          title: "Login Failed",
+          description: data.message || 'Login failed',
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Login error:', error);
-      toast.error('Login failed. Please check your connection and try again.');
+      toast({
+        title: "Login Failed",
+        description: 'Please check your connection and try again.',
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }

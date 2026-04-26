@@ -1,6 +1,7 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Layout from "@/components/Layout";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { Toaster } from "@/components/ui/toaster";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -10,6 +11,7 @@ import Appointments from "./pages/Appointments";
 import DoctorDashboard from "./pages/DoctorDashboard";
 import PatientPortal from "./pages/PatientPortal";
 import PharmacyDashboard from "./pages/PharmacyDashboard";
+import MinimalTest from "./pages/MinimalTest";
 
 const App = () => (
   <BrowserRouter>
@@ -37,6 +39,8 @@ const App = () => (
             </ProtectedRoute>
           } 
         />
+        <Route path="/patient-portal-test" element={<PatientPortal />} />
+        <Route path="/minimal-test" element={<MinimalTest />} />
         <Route 
           path="/pharmacy-dashboard" 
           element={
@@ -48,6 +52,7 @@ const App = () => (
         <Route path="*" element={<Home />} />
       </Routes>
     </Layout>
+    <Toaster />
   </BrowserRouter>
 );
 
