@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import MedicalChatbot from "@/components/MedicalChatbot";
 
 interface Appointment {
   id_rdv: number;
@@ -403,6 +404,9 @@ export default function PatientPortal() {
           )}
         </DialogContent>
       </Dialog>
+      
+      {/* Medical Chatbot */}
+      <MedicalChatbot />
     </div>
   );
 }

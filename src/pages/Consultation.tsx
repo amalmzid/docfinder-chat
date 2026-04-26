@@ -35,7 +35,7 @@ function getTime() {
 
 export default function Consultation() {
   const [messages, setMessages] = useState<Message[]>([
-    { id: 1, text: "Hello! I'm the E-MedCare assistant. I can help with basic health questions or connect you with a doctor. How can I help you today?", sender: "bot", time: getTime() },
+    { id: 1, text: "Hello! I'm the Heal-U assistant. I can help with basic health questions or connect you with a doctor. How can I help you today?", sender: "bot", time: getTime() },
   ]);
   const [input, setInput] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);

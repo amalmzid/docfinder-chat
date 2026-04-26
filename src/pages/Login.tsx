@@ -48,7 +48,7 @@ export default function Login() {
         
         toast({
           title: "Login Successful!",
-          description: `Welcome back to E-MedCare!`,
+          description: `Welcome back to Heal-U!`,
           variant: "default"
         });
         
@@ -89,7 +89,7 @@ export default function Login() {
             <Heart className="h-6 w-6 text-primary-foreground" />
           </div>
           <CardTitle className="font-heading text-2xl">Welcome Back</CardTitle>
-          <CardDescription>Sign in to your E-MedCare account</CardDescription>
+          <CardDescription>Sign in to your Heal-U account</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">

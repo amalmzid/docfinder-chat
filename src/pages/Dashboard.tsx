@@ -23,7 +23,7 @@ export default function Dashboard() {
     <div className="container py-8">
       <div className="mb-8">
         <h1 className="font-heading text-3xl font-bold mb-2">Dashboard</h1>
-        <p className="text-muted-foreground">Overview of E-MedCare platform activity</p>
+        <p className="text-muted-foreground">Overview of Heal-U platform activity</p>
       </div>
 
       {/* Stats */}

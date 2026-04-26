@@ -45,7 +45,7 @@ export default function Register() {
         localStorage.setItem('userType', data.user.role);
         localStorage.setItem('userId', data.user.id);
         
-        toast.success(`Registration Successful! Welcome to E-MedCare!`);
+        toast.success(`Registration Successful! Welcome to Heal-U!`);
         
         // Redirect based on user type
         if (data.user.role === 'doctor') {
@@ -74,7 +74,7 @@ export default function Register() {
             <Heart className="h-6 w-6 text-primary-foreground" />
           </div>
           <CardTitle className="font-heading text-2xl">Create Account</CardTitle>
-          <CardDescription>Join E-MedCare healthcare platform</CardDescription>
+          <CardDescription>Join Heal-U healthcare platform</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">

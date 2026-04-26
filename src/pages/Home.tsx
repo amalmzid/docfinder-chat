@@ -140,7 +140,7 @@ export default function Home() {
               Ready to Take Control of Your Health?
             </h2>
             <p className="text-primary-foreground/80 mb-6 max-w-lg mx-auto">
-              Join thousands of patients and healthcare professionals on E-MedCare.
+              Join thousands of patients and healthcare professionals on Heal-U.
             </p>
             <Button size="lg" variant="secondary" className="text-lg px-8" asChild>
               <Link to="/register">Create Free Account</Link>

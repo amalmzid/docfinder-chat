@@ -163,7 +163,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
       <footer className="border-t bg-white py-8">
         <div className="container text-center text-sm text-gray-600">
-          <p>© 2026 E-MedCare. Connecting patients with healthcare professionals.</p>
+          <p>© 2026 Heal-U. Connecting patients with healthcare professionals.</p>
         </div>
       </footer>
     </div>
