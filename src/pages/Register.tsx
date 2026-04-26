@@ -131,7 +131,7 @@ export default function Register() {
                 <SelectContent>
                   <SelectItem value="patient">Patient</SelectItem>
                   <SelectItem value="medecin">Doctor</SelectItem>
-                  <SelectItem value="adminstrateur">Administrator</SelectItem>
+                  <SelectItem value="pharmacie">Pharmacy</SelectItem>
                 </SelectContent>
               </Select>
             </div>
